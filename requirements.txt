@@ -1,3 +1,5 @@
 evcouplings @ https://github.com/debbiemarkslab/EVcouplings/archive/develop.zip
 fastmcp==2.13.1
 loguru
+numpy==1.26.1
+pandas
