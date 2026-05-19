@@ -7,21 +7,20 @@ from predictor import JointPredictor, EVPredictor, OnehotRidgePredictor
 from util import is_valid_seq, spearman
 
 
-def train_predictor(data_dir, train, save_path, predictor_name='ev+onehot', reg_coef='CV'):
+def train_predictor(data_dir, train, output_dir, predictor_name='ev+onehot', reg_coef='CV'):
     predictor_cls = [EVPredictor, OnehotRidgePredictor]
     predictor = JointPredictor(data_dir, predictor_cls, predictor_name, reg_coef=reg_coef)
 
     predictor.train(train.seq.values, train.log_fitness.values)
-    predictor.save_model()
+    predictor.save_model(save_dir=output_dir)
     return predictor
 
 
-def train_test_eval(data_df, train, test, data_dir):
+def train_test_eval(data_df, train, test, data_dir, output_dir):
     reg_coef = 'CV' if len(data_df) >= 5 else 1.0
-    
+
     # logger.info(f'Number of training samples: {len(train)}, testing samples: {len(test)}')
-    save_path = os.path.join(data_dir, 'ridge_model.joblib')
-    predictor = train_predictor(data_dir, train, save_path, reg_coef=reg_coef)
+    predictor = train_predictor(data_dir, train, output_dir, reg_coef=reg_coef)
 
     test['pred_fitness'] = predictor.predict(test.seq.values)
     correlation = spearman(test['pred_fitness'].to_numpy(), test['log_fitness'].to_numpy())
@@ -31,6 +30,13 @@ def train_test_eval(data_df, train, test, data_dir):
 
 def main(args):
     logger.info(f'Data path {args.data_dir} -----')
+
+    # Resolve output_dir: explicit --output-dir takes priority; otherwise
+    # default to data_dir (legacy behaviour — writes back to inputs).
+    output_dir = args.output_dir if args.output_dir is not None else args.data_dir
+    os.makedirs(output_dir, exist_ok=True)
+    logger.info(f'Output path {output_dir} -----')
+
     train_data_path = args.train_data_path if args.train_data_path is not None else f'{args.data_dir}/data.csv'
 
     # Load dataset
@@ -50,7 +56,7 @@ def main(args):
             logger.info(f'Cross validation fold {fold+1}')
             train = data_df.iloc[train_index]
             test = data_df.iloc[test_index].copy()
-            corr = train_test_eval(data_df, train, test, args.data_dir)
+            corr = train_test_eval(data_df, train, test, args.data_dir, output_dir)
             correlations.append(corr)
         avg_corr = np.mean(correlations)
         std_corr = np.std(correlations)
@@ -59,14 +65,14 @@ def main(args):
     elif args.test_data_path is not None:
         train = data_df
         test = pd.read_csv(args.test_data_path)
-        train_test_eval(data_df, train, test, args.data_dir)
-        
+        train_test_eval(data_df, train, test, args.data_dir, output_dir)
+
     else:
         # conventional train-test split with the specified ratio
         from sklearn.model_selection import train_test_split
         logger.info(f'Performing train-test split with seed {args.seed}')
         train, test = train_test_split(data_df, test_size=args.test_size, random_state=args.seed)
-        train_test_eval(data_df, train, test, args.data_dir)
+        train_test_eval(data_df, train, test, args.data_dir, output_dir)
 
 
 def parse_args():
@@ -83,6 +89,8 @@ def parse_args():
     parser.add_argument('-cv', '--cross_val', dest='cross_val', action='store_true', help='Whether to perform 5-fold cross validation, default False')
     parser.add_argument('-s', '--seed', type=int, default=6, help='Seed for random split')
     parser.add_argument('--test_size', type=float, default=0.2, help='Train-test split ratio, default 0.2 for testing')
+    parser.add_argument('--output-dir', '--output_dir', dest='output_dir', type=str, default=None,
+                        help='Directory to write ridge_model.joblib. Defaults to data_dir (legacy behaviour).')
     args = parser.parse_args()
     return args
 

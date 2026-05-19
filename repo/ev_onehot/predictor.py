@@ -56,13 +56,29 @@ class BaseRegressionPredictor:
         X = self.seq2feat(predict_seqs)
         return self.model.predict(X)
 
-    def save_model(self):
-        save_path = os.path.join(self.data_path, 'ridge_model.joblib')
+    def save_model(self, save_dir=None):
+        """Save trained Ridge model to ``<save_dir>/ridge_model.joblib``.
+
+        Args:
+            save_dir: Directory to save the model file. If ``None``, falls back
+                to ``self.data_path`` (legacy behaviour — writes alongside
+                the training data).
+        """
+        target_dir = save_dir if save_dir is not None else self.data_path
+        os.makedirs(target_dir, exist_ok=True)
+        save_path = os.path.join(target_dir, 'ridge_model.joblib')
         joblib.dump(self.model, save_path)
         logger.info(f"Ridge regression model saved to path {save_path}")
 
-    def load_model(self):
-        model_path = os.path.join(self.data_path, 'ridge_model.joblib')
+    def load_model(self, model_dir=None):
+        """Load Ridge model from ``<model_dir>/ridge_model.joblib``.
+
+        Args:
+            model_dir: Directory containing the joblib file. If ``None``, falls
+                back to ``self.data_path`` (legacy behaviour).
+        """
+        source_dir = model_dir if model_dir is not None else self.data_path
+        model_path = os.path.join(source_dir, 'ridge_model.joblib')
         self.model = joblib.load(model_path)
         # logger.info(f"Ridge regression model loaded from path {model_path}")
 
