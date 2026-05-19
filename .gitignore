@@ -1,4 +1,14 @@
 example/
+# but keep the curated smoke-test demo under plugin/example/
+!plugin/example/
+!plugin/example/**
+# never ship plmc training output / large binaries / transient artifacts
+plugin/example/**/*.model_params
+plugin/example/**/*.EC
+plugin/example/**/ridge_model.joblib
+plugin/example/**/*.a2m
+plugin/example/**/*.a3m
+plugin/example/**/data.csv_pred.csv
 data/
 results/
 __pycache__/
