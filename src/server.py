@@ -1,7 +1,12 @@
 """
 Model Context Protocol (MCP) for ev_onehot
 
-This MCP server provides tools for protein fitness prediction combining evolutionary data and one-hot encoding approaches.
+⚠️  DEPRECATED — see ../README.md "关于代码组织".
+
+This FastMCP wrapper is kept for the original standalone "claude mcp add"
+flow. New downstream integrations (e.g. PDAgent) call repo/ev_onehot's
+CLI scripts directly inside the container instead of going through this
+server. Critical-fix only; new features go to repo/.
 
 This MCP Server contains the following tools:
 1. ev_onehot_train_fitness_predictor: Train and evaluate combined EV+Onehot predictor for protein fitness prediction

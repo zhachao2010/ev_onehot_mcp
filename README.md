@@ -6,6 +6,15 @@ An MCP (Model Context Protocol) server for protein fitness prediction with 2 cor
 - Train a Ridge regression fitness model combining evolutionary (EV) features and one-hot encoding
 - Predict fitness for new protein sequences using a trained model
 
+> **关于代码组织**
+> - **`repo/ev_onehot/`** —— 论文原始算法代码（`train.py` / `pred.py` / `predictor.py` / `couplings_model.py` / `util.py`），是真正"工作"的层
+> - **`src/`** —— 早期的 FastMCP wrapper，把 `repo/` 封装成 MCP tools
+>   - **状态：deprecated** —— 仍可用于 standalone "Quick Start with Docker" 方式（下面 §1 / §2 这两节）
+>   - PDAgent / 其他下游集成已改为**直接调 `repo/` 的 CLI 脚本**（`docker run ... python /app/repo/ev_onehot/train.py ...`），不依赖 `src/`
+>   - 新功能不再添加到 `src/`，bug 也只接收 critical 级修复
+> - 看代码从哪开始：[`CODE_READING.md`](./CODE_READING.md)
+> - CLI / Docker 调用样例：[`CHEATSHEET.md`](./CHEATSHEET.md)
+
 ## Quick Start with Docker
 
 ### Approach 1: Pull Pre-built Image from GitHub
